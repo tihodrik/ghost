@@ -41,8 +41,6 @@
             this.label4 = new System.Windows.Forms.Label();
             this.initialVector = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
-            this.wrong_key = new System.Windows.Forms.Label();
-            this.wrong_text = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // path
@@ -136,7 +134,6 @@
             this.key.Name = "key";
             this.key.Size = new System.Drawing.Size(352, 20);
             this.key.TabIndex = 9;
-            this.key.TextChanged += new System.EventHandler(this.key_TextChanged);
             // 
             // label4
             // 
@@ -163,39 +160,11 @@
             this.label5.TabIndex = 12;
             this.label5.Text = "Начальный вектор (int)";
             // 
-            // wrong_key
-            // 
-            this.wrong_key.AutoSize = true;
-            this.wrong_key.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.wrong_key.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.wrong_key.ForeColor = System.Drawing.SystemColors.MenuHighlight;
-            this.wrong_key.Location = new System.Drawing.Point(267, 74);
-            this.wrong_key.Name = "wrong_key";
-            this.wrong_key.Size = new System.Drawing.Size(97, 13);
-            this.wrong_key.TabIndex = 13;
-            this.wrong_key.Text = "WRONG INPUT";
-            this.wrong_key.Visible = false;
-            // 
-            // wrong_text
-            // 
-            this.wrong_text.AutoSize = true;
-            this.wrong_text.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.wrong_text.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.wrong_text.ForeColor = System.Drawing.SystemColors.MenuHighlight;
-            this.wrong_text.Location = new System.Drawing.Point(154, 173);
-            this.wrong_text.Name = "wrong_text";
-            this.wrong_text.Size = new System.Drawing.Size(97, 13);
-            this.wrong_text.TabIndex = 14;
-            this.wrong_text.Text = "WRONG INPUT";
-            this.wrong_text.Visible = false;
-            // 
             // Encryption
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(511, 434);
-            this.Controls.Add(this.wrong_text);
-            this.Controls.Add(this.wrong_key);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.initialVector);
             this.Controls.Add(this.label4);
@@ -231,8 +200,6 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox initialVector;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label wrong_key;
-        private System.Windows.Forms.Label wrong_text;
     }
 }
 

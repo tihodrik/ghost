@@ -59,25 +59,14 @@ namespace GHOST_28147_89
             // Считываем весь ключ, введенный пользователем
             List<byte> full_key = new List<byte>();
 
-            try
-            {
-                foreach (char symbol in key.Text)
-                {
-                    full_key.Add(Convert.ToByte(symbol));
-                }
+            full_key.AddRange(Encoding.Unicode.GetBytes(key.Text));
+            
+            // Мы можем оперировать только ключами фиксированной длины: 256 бит = 32 байт
+            // Поэтому, если введенный клч короткий - увеличиваем его,
+            // если длинный - укорачиваем.
 
-                // Мы можем оперировать только ключами фиксированной длины: 256 бит = 32 байт
-                // Поэтому, если введенный клч короткий - увеличиваем его,
-                // если длинный - укорачиваем.
-
-                MakeValidKey(ref full_key);
-            }
-            catch (System.OverflowException)
-            {
-                key.Text = "WRONG INPUT";
-                return;
-            }
-
+            MakeValidKey(ref full_key);
+            
             // Весь ключ разбивается на 8 частей по 4 байта,
             // эти части будут в последствии использованы на отдельных раундах шифрования 
             List<List<byte>> K = new List<List<byte>>();
@@ -171,35 +160,31 @@ namespace GHOST_28147_89
         /// <param name="text">Переменная для хранения открытого текста</param>
         void GetText(ref List<List<byte>> text)
         {
-            List<byte> tmp_block;
+            List<byte> tmp_block = new List<byte>();
+            tmp_block.AddRange(Encoding.Unicode.GetBytes(openText.Text));
 
-            for (int i = 0; i < openText.Text.Count(); i += 8)
+            text.Clear();
+
+            for (int i = 0; i < tmp_block.Count; i += 8)
             {
-                tmp_block = new List<byte>();
-
                 try
                 {
-                    foreach (char symbol in openText.Text.Substring(i, 8))
-                    {
-                        tmp_block.Add(Convert.ToByte(symbol));
-                    }
+                    text.Add(tmp_block.GetRange(i, 8));
                 }
-                catch (ArgumentOutOfRangeException)
+
+                catch (ArgumentException)
                 {
-                    int difference = openText.Text.Count() - i;
-                    foreach (char symbol in openText.Text.Substring(i, difference))
-                    {
-                        tmp_block.Add(Convert.ToByte(symbol));
-                    }
-                    for (int j = difference; j < 8; j++)
+                    int difference = tmp_block.Count - i;
+
+                    for (int j = 0; j < 8 - difference; j++)
                     {
                         tmp_block.Add(Convert.ToByte(null));
                     }
+
+                    text.Add(tmp_block.GetRange(i, 8));
                 }
-                text.Add(tmp_block);
             }
         }
-
         /// <summary>
         /// Формирование ключа нужной длинны
         /// </summary>
@@ -399,31 +384,13 @@ namespace GHOST_28147_89
         private void openText_TextChanged(object sender, EventArgs e)
         {
             encryptedText.Clear();
-
-            wrong_text.ForeColor = System.Drawing.Color.Red;
-            TextBox t = sender as TextBox;
-            
-
-            if (t.Text != "")
+        
+            if ((sender as TextBox).Text != "")
             {
-                foreach (var element in t.Text)
-                {
-                    if (element > 255)
-                    {
-                        wrong_text.Visible = true;
-                        encryptionButton.Enabled = false;
-                        return;
-                    }
-                }
-                wrong_text.Visible = false;
-                if (wrong_key.Visible == false)
-                {
-                    encryptionButton.Enabled = true;
-                }
+                encryptionButton.Enabled = true;
             }
             else
             {
-                wrong_text.Visible = false;
                 encryptionButton.Enabled = false;
             }
         }
@@ -437,27 +404,6 @@ namespace GHOST_28147_89
             else
             {
                 saveButton.Enabled = false;
-            }
-        }
-
-        private void key_TextChanged(object sender, EventArgs e)
-        {
-            wrong_key.ForeColor = System.Drawing.Color.Red;
-
-            TextBox k = (sender as TextBox);
-            foreach (var element in k.Text)
-            {
-                if (element > 255)
-                {
-                    wrong_key.Visible = true;
-                    encryptionButton.Enabled = false;
-                    return;
-                }
-            }
-            wrong_key.Visible = false;
-            if (wrong_text.Visible == false && openText.TextLength > 0)
-            {
-                encryptionButton.Enabled = true;
             }
         }
     }
