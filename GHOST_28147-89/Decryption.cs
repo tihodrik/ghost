@@ -11,11 +11,9 @@ using System.IO;
 
 namespace GHOST_28147_89
 {
-    public partial class Encryption : Form
+    public partial class Decryption : Form
     {
-
-
-        public Encryption()
+        public Decryption()
         {
             InitializeComponent();
         }
@@ -23,7 +21,7 @@ namespace GHOST_28147_89
         private void openFileButton_Click(object sender, EventArgs e)
         {
             saveButton.Enabled = false;
-            encryptionButton.Enabled = false;
+            decryptionButton.Enabled = false;
 
             OpenFileDialog file = new OpenFileDialog();
             file.Filter = "Text files|*.txt";
@@ -32,14 +30,13 @@ namespace GHOST_28147_89
             if ((file.FileName) != "")
             {
                 path.Text = file.FileName;
-                openText.Clear();
-
+                closeText.Clear();
 
                 StreamReader read = new StreamReader(file.FileName, Encoding.Default);
-                openText.AppendText(read.ReadToEnd());
+                closeText.AppendText(read.ReadToEnd());
             }
         }
-        private void encryptButton_Click(object sender, EventArgs e)
+        private void decryptionButton_Click(object sender, EventArgs e)
         {
             // В алгоритме фигурируют блоки открытого текста по 64 бит (8 байт) каждый
             // и ключ длиной в 256 бит (32 байта)
@@ -47,7 +44,7 @@ namespace GHOST_28147_89
             // Считаем весь текст из поля ввода и распределим его по 8-байтным блокам:
             List<List<byte>> text = new List<List<byte>>();
             GetText(ref text);
-            
+
             // Считываем весь ключ, введенный пользователем
             List<byte> full_key = new List<byte>();
 
@@ -63,18 +60,17 @@ namespace GHOST_28147_89
             // эти части будут в последствии использованы на отдельных раундах шифрования 
             List<List<byte>> K = new List<List<byte>>();
 
-            // Всего 32 раунда шифрования, соответственно нам надо 32шт Ki
+            // Всего 32 раунда расшифрования, соответственно нам надо 32шт Ki
             // Они получаются следующим образом:
-            // K0 - K7 - 4-байтные части полного ключа,
-            // K8 - k23 - циклические повторения K0 - K7
-            // K24 - K31 == K7 - K0
+            // K0 - K7 - 4-байтные части полного ключа (K0 - K7),
+            // K8 - K31 - циклические повторения K7 - K0
             FillK(ref K, ref full_key);
 
 
             // 64-битные (8-байтные) блоки открытого текста разбиваются попалам
             // на фрагменты A и B (по 4 байта)
-            List<byte> A;
             List<byte> B;
+            List<byte> A;
             List<byte> resList = new List<byte>();
 
             for (int i = 0; i < text.Count; i++)
@@ -85,7 +81,7 @@ namespace GHOST_28147_89
                 // Блоки A и B проходят 32 раунда шифрования
                 for (int j = 0; j < 32; j++)
                 {
-                    Encrypt(ref A, ref B, K[j]);
+                    Derypt(ref A, ref B, K[j]);
                 }
 
                 // Зашифрованные блоки A и B снова склеиваются
@@ -100,7 +96,7 @@ namespace GHOST_28147_89
                 resSB.Append(Convert.ToChar(block));
             }
 
-            closeText.Text = resSB.ToString();
+            openText.Text = resSB.ToString();
         }
 
         /// <summary>
@@ -109,7 +105,7 @@ namespace GHOST_28147_89
         /// <param name="A">Подблок A</param>
         /// <param name="B">Подблок B</param>
         /// <param name="K">Ключ Ki</param>
-        void Encrypt(ref List<byte> A, ref List<byte> B, List<byte> K)
+        void Derypt(ref List<byte> A, ref List<byte> B, List<byte> K)
         {
             List<byte> new_A = SUM1(B, Function(A, K));
             B = A;
@@ -153,7 +149,7 @@ namespace GHOST_28147_89
         void GetText(ref List<List<byte>> text)
         {
             List<byte> tmp_block = new List<byte>();
-            tmp_block.AddRange(Encoding.Unicode.GetBytes(openText.Text));
+            tmp_block.AddRange(Encoding.Unicode.GetBytes(closeText.Text));
 
             text.Clear();
 
@@ -222,18 +218,15 @@ namespace GHOST_28147_89
             {
                 K.Add(key.GetRange(i, 4));
             }
+            K.AddRange(K);
+            K.Reverse(8,8);
 
-            // Для получения нужного результата нужно текущее значение K
-            // повторить еще 3 раза (должно быть 32 шт Ki. Сейчас их 8. Нужно еще (32-8)/8 = 3)
-            // На первой итерации мы добавляем в конец копию текущего K
-            // получаем 8+8=16 элементов
-            // На второй итерации мы снова добавляем копию K (где уже 16 элементов):
-            // 16+16=32 - то, что нужно!
+            // Для получения нужного результата нужно текущее значение K[8..15]
+            // повторить еще 2 раза (должно быть 32 шт Ki. Сейчас их 16. Нужно еще (32-16)/8 = 2)
             for (int i = 0; i < 2; i++)
             {
-                K.AddRange(K);
+                K.AddRange(K.GetRange(8,8));
             }
-            K.Reverse(24, 8);
         }
         /// <summary>
         /// Сумма по модулю 2
@@ -374,21 +367,21 @@ namespace GHOST_28147_89
         }
 
         // Actions
-        private void openText_TextChanged(object sender, EventArgs e)
+        private void closeText_TextChanged(object sender, EventArgs e)
         {
-            closeText.Clear();
+            openText.Clear();
         
             if ((sender as TextBox).Text != "")
             {
-                encryptionButton.Enabled = true;
+                decryptionButton.Enabled = true;
             }
             else
             {
-                encryptionButton.Enabled = false;
+                decryptionButton.Enabled = false;
             }
         }
 
-        private void closeText_TextChanged(object sender, EventArgs e)
+        private void openText_TextChanged(object sender, EventArgs e)
         {
             completeSaving.Visible = false;
 
@@ -414,10 +407,16 @@ namespace GHOST_28147_89
                 write.Write(closeText.Text);
                 write.Close();
                 completeSaving.Visible = true;
-                Decryption dec = new Decryption();
-                dec.ShowDialog(this);
             }
 
+        }
+
+        private void copy_Click(object sender, EventArgs e)
+        {
+            Encryption own = this.Owner as Encryption;
+            
+            key.Text = own.Controls["key"].Text;
+            initialVector.Text = this.Owner.Controls["initialVector"].Text;
         }
     }
 }

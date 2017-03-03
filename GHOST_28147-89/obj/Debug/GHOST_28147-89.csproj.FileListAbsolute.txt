@@ -16,3 +16,4 @@ C:\Users\Darya Tikhomirova\Documents\Visual Studio 2013\Projects\GHOST_28147-89\
 C:\Users\Darya Tikhomirova\Documents\Visual Studio 2013\Projects\GHOST_28147-89\ghost\GHOST_28147-89\obj\Debug\GHOST_28147_89.Encryption.resources
 C:\Users\Darya Tikhomirova\Documents\Visual Studio 2013\Projects\GHOST_28147-89\ghost\GHOST_28147-89\obj\Debug\GHOST_28147_89.Properties.Resources.resources
 C:\Users\Darya Tikhomirova\Documents\Visual Studio 2013\Projects\GHOST_28147-89\ghost\GHOST_28147-89\obj\Debug\GHOST_28147-89.csproj.GenerateResource.Cache
+C:\Users\Darya Tikhomirova\Documents\Visual Studio 2013\Projects\GHOST_28147-89\ghost\GHOST_28147-89\obj\Debug\GHOST_28147_89.Decryption.resources
