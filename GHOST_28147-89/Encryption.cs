@@ -85,8 +85,9 @@ namespace GHOST_28147_89
                 // Блоки A и B проходят 32 раунда шифрования
                 for (int j = 0; j < 1; j++)
                 {
-                    Encrypt(ref A, ref B, K[j]);
+                    Encrypt(ref A, ref B, K[j], true);
                 }
+                Encrypt(ref A, ref B, K[1], true);
 
                 // Зашифрованные блоки A и B снова склеиваются
                 resList.AddRange(A);
@@ -106,13 +107,13 @@ namespace GHOST_28147_89
         /// <param name="A">Подблок A</param>
         /// <param name="B">Подблок B</param>
         /// <param name="K">Ключ Ki</param>
-        void Encrypt(ref List<byte> A, ref List<byte> B, List<byte> K)
+        void Encrypt(ref List<byte> A, ref List<byte> B, List<byte> K,  bool isLastRaund)
         {
-            List<byte> new_A = SUM1(B, Function(A, K, ref initialVector));
+            List<byte> new_A = SUM1(B, Function(A, K, isLastRaund, ref initialVector));
             B = A;
             A = new_A;
         }
-        public List<byte> Function(List<byte> A, List<byte> K, ref TextBox initial)
+        public List<byte> Function(List<byte> A, List<byte> K, bool isLastRaund, ref TextBox initial)
         {
             // Сумма по модулю 2^32
             List<byte> sum = SUM32(A, K);
@@ -129,12 +130,14 @@ namespace GHOST_28147_89
 
             // Циклический сдвиг влево на 11 позиций
             StringBuilder SB = ToStringBuilder(sum, 4);
-            //for (int i = 0; i < 11; i++)
-            //{
-            //    SB.Append(SB[0]);
-            //    SB.Remove(0, 1);
-            //}
-
+            if (!isLastRaund)
+            {
+                for (int i = 0; i < 11; i++)
+                {
+                    SB.Append(SB[0]);
+                    SB.Remove(0, 1);
+                }
+            }
             // Формирование результирующего слова
             sum = ToList(SB, 8);
 

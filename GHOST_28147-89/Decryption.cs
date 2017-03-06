@@ -83,8 +83,9 @@ namespace GHOST_28147_89
                 // Блоки A и B проходят 32 раунда шифрования
                 for (int j = 0; j < 1; j++)
                 {
-                    Decrypt(ref A, ref B, K[j]);
+                    Decrypt(ref A, ref B, K[j], true);
                 }
+                Decrypt(ref A, ref B, K[1], true);
 
                 // Зашифрованные блоки A и B снова склеиваются
                 resList.AddRange(A);
@@ -104,9 +105,9 @@ namespace GHOST_28147_89
         /// <param name="A">Подблок A</param>
         /// <param name="B">Подблок B</param>
         /// <param name="K">Ключ Ki</param>
-        void Decrypt(ref List<byte> A, ref List<byte> B, List<byte> K)
+        void Decrypt(ref List<byte> A, ref List<byte> B, List<byte> K, bool isLastRaund)
         {
-            List<byte> new_A = owner.SUM1(B, owner.Function(A, K, ref initialVector));
+            List<byte> new_A = owner.SUM1(B, owner.Function(A, K, isLastRaund, ref initialVector));
             B = A;
             A = new_A;
         }
