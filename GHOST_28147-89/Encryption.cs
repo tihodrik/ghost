@@ -35,7 +35,7 @@ namespace GHOST_28147_89
                 openText.Clear();
 
 
-                StreamReader read = new StreamReader(file.FileName, Encoding.Default);
+                StreamReader read = new StreamReader(file.FileName, Encoding.Unicode);
                 openText.AppendText(read.ReadToEnd());
             }
         }
@@ -46,7 +46,7 @@ namespace GHOST_28147_89
 
             // Считаем весь текст из поля ввода и распределим его по 8-байтным блокам:
             List<List<byte>> text = new List<List<byte>>();
-            GetText(ref text);
+            GetText(ref text, ref openText);
             
             // Считываем весь ключ, введенный пользователем
             List<byte> full_key = new List<byte>();
@@ -57,7 +57,7 @@ namespace GHOST_28147_89
             // Поэтому, если введенный клч короткий - увеличиваем его,
             // если длинный - укорачиваем.
 
-            MakeValidKey(ref full_key);
+            MakeValidKey(ref full_key, ref initialVector);
             
             // Весь ключ разбивается на 8 частей по 4 байта,
             // эти части будут в последствии использованы на отдельных раундах шифрования 
@@ -83,23 +83,20 @@ namespace GHOST_28147_89
                 A = new List<byte>(text[i].GetRange(4, 4));
 
                 // Блоки A и B проходят 32 раунда шифрования
-                for (int j = 0; j < 32; j++)
+                for (int j = 0; j < 1; j++)
                 {
                     Encrypt(ref A, ref B, K[j]);
                 }
 
                 // Зашифрованные блоки A и B снова склеиваются
-                resList.AddRange(B);
                 resList.AddRange(A);
+                resList.AddRange(B);
             }
 
             // Записываем результат в блок зашифрованного текста:
             StringBuilder resSB = new StringBuilder();
-            foreach (byte block in resList)
-            {
-                resSB.Append(Convert.ToChar(block));
-            }
-
+            resSB.Append(Encoding.Unicode.GetString(resList.ToArray()));
+         
             closeText.Text = resSB.ToString();
         }
 
@@ -111,17 +108,17 @@ namespace GHOST_28147_89
         /// <param name="K">Ключ Ki</param>
         void Encrypt(ref List<byte> A, ref List<byte> B, List<byte> K)
         {
-            List<byte> new_A = SUM1(B, Function(A, K));
+            List<byte> new_A = SUM1(B, Function(A, K, ref initialVector));
             B = A;
             A = new_A;
         }
-        List<byte> Function(List<byte> A, List<byte> K)
+        public List<byte> Function(List<byte> A, List<byte> K, ref TextBox initial)
         {
             // Сумма по модулю 2^32
             List<byte> sum = SUM32(A, K);
 
             // Замены с помощью S-блоков
-            List<List<int>> S = CreateS();
+            List<List<int>> S = CreateS(ref initial);
             UInt16 s_index;
 
             for (int i = 0; i < sum.Count; i++)
@@ -132,11 +129,11 @@ namespace GHOST_28147_89
 
             // Циклический сдвиг влево на 11 позиций
             StringBuilder SB = ToStringBuilder(sum, 4);
-            for (int i = 0; i < 11; i++)
-            {
-                SB.Append(SB[0]);
-                SB.Remove(0, 1);
-            }
+            //for (int i = 0; i < 11; i++)
+            //{
+            //    SB.Append(SB[0]);
+            //    SB.Remove(0, 1);
+            //}
 
             // Формирование результирующего слова
             sum = ToList(SB, 8);
@@ -150,20 +147,24 @@ namespace GHOST_28147_89
         /// по 8-байтным блокам
         /// </summary>
         /// <param name="text">Переменная для хранения открытого текста</param>
-        void GetText(ref List<List<byte>> text)
+        public void GetText(ref List<List<byte>> text, ref TextBox field)
         {
+            // Считаем весь текст, что есть
             List<byte> tmp_block = new List<byte>();
-            tmp_block.AddRange(Encoding.Unicode.GetBytes(openText.Text));
+            tmp_block.AddRange(Encoding.Unicode.GetBytes(field.Text));
 
             text.Clear();
 
+            // Так как на вход шифратору передаются 64 битные (8 байтные) блоки
+            // данных, то сразу разобьем text на блоки по  байт каждый
             for (int i = 0; i < tmp_block.Count; i += 8)
             {
                 try
                 {
                     text.Add(tmp_block.GetRange(i, 8));
                 }
-
+                // если число байт в исходном тексте не кратно 8,
+                // искуственно добавим их (доставим NULL'ы)
                 catch (ArgumentException)
                 {
                     int difference = tmp_block.Count - i;
@@ -181,7 +182,7 @@ namespace GHOST_28147_89
         /// Формирование ключа нужной длинны
         /// </summary>
         /// <param name="full_key">Ключ, введенный пользователем</param>
-        void MakeValidKey(ref List<byte> full_key)
+        public void MakeValidKey(ref List<byte> full_key, ref TextBox initial)
         {
             if (full_key.Count < 32)
             {
@@ -189,9 +190,9 @@ namespace GHOST_28147_89
                 // шифратора и дешифратора, явно инициализируем первое значение
                 // генератора
                 int init;
-                if (initialVector.Text != "")
+                if (initial.Text != "")
                 {
-                    init = Convert.ToInt32(initialVector.Text) % 256;
+                    init = Convert.ToInt32(initial.Text) % 256;
                 }
                 else
                 {
@@ -216,7 +217,7 @@ namespace GHOST_28147_89
         /// </summary>
         /// <param name="K">Массив Ki</param>
         /// <param name="key">Исходный полный ключ</param>
-        void FillK(ref List<List<byte>> K, ref List<byte> key)
+        public void FillK(ref List<List<byte>> K, ref List<byte> key)
         {
             for (int i = 0; i < key.Count; i += 4)
             {
@@ -241,7 +242,7 @@ namespace GHOST_28147_89
         /// <param name="N1">Первое слагаемое</param>
         /// <param name="N2">Второе слагаемое</param>
         /// <returns>Сумма по модулю 2</returns>
-        List<byte> SUM1(List<byte> N1, List<byte> N2)
+        public List<byte> SUM1(List<byte> N1, List<byte> N2)
         {
             if (N1.Count != N2.Count)
             {
@@ -269,7 +270,7 @@ namespace GHOST_28147_89
         /// <param name="N1">Первое слагаемое</param>
         /// <param name="N2">Второе слагаемое</param>
         /// <returns>Сумма по модулю 2^32</returns>
-        List<byte> SUM32(List<byte> N1, List<byte> N2)
+        public List<byte> SUM32(List<byte> N1, List<byte> N2)
         {
             StringBuilder sb1 = ToStringBuilder(N1, 8);
             StringBuilder sb2 = ToStringBuilder(N2, 8);
@@ -298,7 +299,7 @@ namespace GHOST_28147_89
         /// <param name="block">Исходный массив байтов</param>
         /// <param name="count">Разрядность числа в последовательности</param>
         /// <returns>Данные в виде последовательности из нулей и единиц </returns>
-        StringBuilder ToStringBuilder(List<byte> block, int count)
+        public StringBuilder ToStringBuilder(List<byte> block, int count)
         {
             StringBuilder result = new StringBuilder();
             StringBuilder tmp = new StringBuilder();
@@ -322,14 +323,14 @@ namespace GHOST_28147_89
         /// <param name="SB">Данные в виде последовательности нулей и единиц</param>
         /// <param name="count">По сколько "отщипывать" от последовательности</param>
         /// <returns>Представление исходных данных в виде последовательности байт</returns>
-        List<byte> ToList(StringBuilder SB, int count)
+        public List<byte> ToList(StringBuilder SB, int count)
         {
             List<byte> result = new List<byte>();
             string str = SB.ToString();
 
             for (int i = 0; i < str.Length; i += count)
             {
-                result.Add(Convert.ToByte(str.Substring(i, 4), 2));
+                result.Add(Convert.ToByte(str.Substring(i, count), 2));
             }
             return result;
         }
@@ -339,12 +340,12 @@ namespace GHOST_28147_89
         /// начальное значение генераторов задается с помощью вектора инициализации
         /// </summary>
         /// <returns>Таблица замен: 8 S-блоков</returns>
-        List<List<int>> CreateS()
+        public List<List<int>> CreateS(ref TextBox initial)
         {
             int init;
-            if (initialVector.Text != "")
+            if (initial.Text != "")
             {
-                init = Convert.ToInt32(initialVector.Text) % 256;
+                init = Convert.ToInt32(initial.Text) % 256;
             }
             else
             {
@@ -410,7 +411,7 @@ namespace GHOST_28147_89
 
             if ((file.FileName) != "")
             {
-                StreamWriter write = new StreamWriter(file.FileName);
+                StreamWriter write = new StreamWriter(file.FileName, false, Encoding.Unicode);
                 write.Write(closeText.Text);
                 write.Close();
                 completeSaving.Visible = true;

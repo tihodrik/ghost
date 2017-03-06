@@ -56,6 +56,7 @@
     <Compile Include="Encryption.Designer.cs">
       <DependentUpon>Encryption.cs</DependentUpon>
     </Compile>
+    <Compile Include="Helpers.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Decryption.resx">
