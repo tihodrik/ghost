@@ -83,11 +83,11 @@ namespace GHOST_28147_89
                 A = new List<byte>(text[i].GetRange(4, 4));
 
                 // Блоки A и B проходят 32 раунда шифрования
-                for (int j = 0; j < 1; j++)
+                for (int j = 0; j < 2; j++)
                 {
-                    Encrypt(ref A, ref B, K[j], true);
+                    Encrypt(ref A, ref B, K[j], false);
                 }
-                Encrypt(ref A, ref B, K[1], true);
+                //Encrypt(ref A, ref B, K[1], true);
 
                 // Зашифрованные блоки A и B снова склеиваются
                 resList.AddRange(A);
