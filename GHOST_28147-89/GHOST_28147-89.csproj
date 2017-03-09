@@ -58,6 +58,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Helpers.cs" />
     <EmbeddedResource Include="Decryption.resx">
       <DependentUpon>Decryption.cs</DependentUpon>
     </EmbeddedResource>
